@@ -1,39 +1,40 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
+import { NextFunction, Request, RequestHandler, Response } from 'express';
 
+import { ForbiddenException } from '../common/http-exception';
+import { User } from '../users/user.entity';
 import { AppAbility, CaslFactory } from './casl.factory';
-import { CHECK_POLICIES_KEY } from './check-policies.decorator';
 import { PolicyHandler } from './policy-handlers';
 
-@Injectable()
-export class PoliciesGuard implements CanActivate {
-  constructor(
-    private readonly reflector: Reflector,
-    private readonly caslFactory: CaslFactory,
-  ) {}
-
-  canActivate(context: ExecutionContext): boolean {
-    const policyHandlers =
-      this.reflector.get<PolicyHandler[]>(
-        CHECK_POLICIES_KEY,
-        context.getHandler(),
-      ) || [];
-
-    const { user } = context.switchToHttp().getRequest();
-    const ability = this.caslFactory.createForUser(user);
-
-    return policyHandlers.every((handler) =>
-      this.execPolicyHandler(handler, ability),
-    );
+const execPolicyHandler = (
+  handler: PolicyHandler,
+  ability: AppAbility,
+): boolean => {
+  if (typeof handler === 'function') {
+    return handler(ability);
   }
+  return handler.handle(ability);
+};
 
-  private execPolicyHandler(
-    handler: PolicyHandler,
-    ability: AppAbility,
-  ): boolean {
-    if (typeof handler === 'function') {
-      return handler(ability);
+/**
+ * Refuses the request unless every supplied policy holds for the authenticated
+ * user's abilities. Attach it after the authentication guard, whose job it is
+ * to put the user on the request in the first place.
+ */
+export const createPoliciesGuard = (
+  caslFactory: CaslFactory,
+  ...policyHandlers: PolicyHandler[]
+): RequestHandler => {
+  return (req: Request, _res: Response, next: NextFunction): void => {
+    const user = (req as Request & { user: User }).user;
+    const ability = caslFactory.createForUser(user);
+
+    if (
+      policyHandlers.every((handler) => execPolicyHandler(handler, ability))
+    ) {
+      next();
+      return;
     }
-    return handler.handle(ability);
-  }
-}
+
+    next(new ForbiddenException());
+  };
+};

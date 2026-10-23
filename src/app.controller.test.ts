@@ -1,41 +1,17 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ModuleMocker } from 'jest-mock';
-
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
-const moduleMocker = new ModuleMocker(global);
-
 describe('AppController', () => {
-  let app: TestingModule;
   let controller: AppController;
 
-  beforeAll(async () => {
-    app = await Test.createTestingModule({
-      controllers: [AppController],
-    })
-      .useMocker((token) => {
-        if (token === AppService) {
-          return {
-            startingMessage: jest.fn().mockResolvedValue({
-              message:
-                'Welcome to api! Navigate to api/v1/docs for documentation.',
-            }),
-          };
-        }
-        if (typeof token === 'function') {
-          const mockMetadata = moduleMocker.getMetadata(token);
-          if (!mockMetadata) return undefined;
-          const Mock = moduleMocker.generateFromMetadata(
-            mockMetadata,
-          ) as new () => unknown;
-          return new Mock();
-        }
-        return undefined;
-      })
-      .compile();
+  beforeAll(() => {
+    const appService = {
+      startingMessage: jest.fn().mockResolvedValue({
+        message: 'Welcome to api! Navigate to api/v1/docs for documentation.',
+      }),
+    } as unknown as AppService;
 
-    controller = app.get<AppController>(AppController);
+    controller = new AppController(appService);
   });
 
   it('should be defined', () => {

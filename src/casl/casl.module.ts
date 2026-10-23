@@ -1,9 +1,13 @@
-import { Module } from '@nestjs/common';
-
 import { CaslFactory } from './casl.factory';
 
-@Module({
-  providers: [CaslFactory],
-  exports: [CaslFactory],
-})
-export class CaslModule {}
+/**
+ * Owns the ability factory that turns a user into the set of actions they are
+ * allowed to perform.
+ */
+export class CaslModule {
+  readonly factory: CaslFactory;
+
+  constructor() {
+    this.factory = new CaslFactory();
+  }
+}

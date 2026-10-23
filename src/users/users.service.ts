@@ -1,9 +1,7 @@
 import {
   BadRequestException,
-  Injectable,
   NotAcceptableException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+} from '../common/http-exception';
 import * as crypto from 'crypto';
 import { url } from 'gravatar';
 import { Repository } from 'typeorm';
@@ -15,12 +13,9 @@ import { PatchUserDto } from './dto/patch-user.dto';
 import { UserRoles } from './user-role.entity';
 import { User } from './user.entity';
 
-@Injectable()
 export class UsersService {
   constructor(
-    @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    @InjectRepository(UserRoles)
     private readonly userRolesRepository: Repository<UserRoles>,
   ) {}
 

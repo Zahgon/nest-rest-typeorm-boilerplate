@@ -1,10 +1,5 @@
-import {
-  Injectable,
-  Logger,
-  OnModuleDestroy,
-  OnModuleInit,
-} from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ConfigService } from '../common/config.service';
+import { Logger } from '../common/logger';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import type { IncomingMessage, ServerResponse } from 'http';
@@ -26,8 +21,7 @@ const LOCAL_SERVER_ID = 'local';
  *   - The internal `invokeTool` / `readResource` API used by the gateway
  *     service to power the Angular chat preview.
  */
-@Injectable()
-export class McpServerService implements OnModuleInit, OnModuleDestroy {
+export class McpServerService {
   private readonly logger = new Logger(McpServerService.name);
   private readonly serverName: string;
   private readonly serverVersion: string;
@@ -56,7 +50,7 @@ export class McpServerService implements OnModuleInit, OnModuleDestroy {
       this.configService.get<string>('MCP_SERVER_VERSION') ?? '1.0.0';
   }
 
-  async onModuleInit(): Promise<void> {
+  async init(): Promise<void> {
     this.server = new McpServer({
       name: this.serverName,
       version: this.serverVersion,
@@ -79,7 +73,7 @@ export class McpServerService implements OnModuleInit, OnModuleDestroy {
     );
   }
 
-  async onModuleDestroy(): Promise<void> {
+  async close(): Promise<void> {
     try {
       await this.transport?.close();
     } catch (err) {

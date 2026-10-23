@@ -1,11 +1,6 @@
-import {
-  Injectable,
-  Logger,
-  NotFoundException,
-  OnModuleDestroy,
-  OnModuleInit,
-} from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ConfigService } from '../common/config.service';
+import { NotFoundException } from '../common/http-exception';
+import { Logger } from '../common/logger';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 
@@ -34,14 +29,13 @@ interface RemoteConnection {
  * mirrored into the gateway inventory so they can be called from the
  * Angular chat UI just like local ones.
  */
-@Injectable()
-export class McpClientService implements OnModuleInit, OnModuleDestroy {
+export class McpClientService {
   private readonly logger = new Logger(McpClientService.name);
   private readonly connections = new Map<string, RemoteConnection>();
 
   constructor(private readonly configService: ConfigService) {}
 
-  async onModuleInit(): Promise<void> {
+  async init(): Promise<void> {
     const raw = this.configService.get<string>('MCP_CLIENT_REMOTES') ?? '';
     const endpoints = raw
       .split(',')
@@ -56,7 +50,7 @@ export class McpClientService implements OnModuleInit, OnModuleDestroy {
     await Promise.all(endpoints.map((url, idx) => this.connect(url, idx)));
   }
 
-  async onModuleDestroy(): Promise<void> {
+  async close(): Promise<void> {
     await Promise.all(
       Array.from(this.connections.values()).map(async (conn) => {
         try {

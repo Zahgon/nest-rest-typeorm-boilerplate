@@ -1,16 +1,4 @@
-import {
-  All,
-  BadRequestException,
-  Body,
-  Controller,
-  Get,
-  Post,
-  Query,
-  Req,
-  Res,
-} from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
-import type { FastifyReply, FastifyRequest } from 'fastify';
+import type { IncomingMessage, ServerResponse } from 'http';
 
 import {
   McpChatRequest,
@@ -20,38 +8,25 @@ import {
   McpToolInvocationResponse,
 } from './mcp.types';
 
-import { Public } from '../auth/public.decorator';
+import { BadRequestException } from '../common/http-exception';
 import { McpGatewayService } from './mcp-gateway.service';
 import { McpServerService } from './mcp-server.service';
 
-@ApiTags('mcp')
-@Controller('v1/mcp')
 export class McpController {
   constructor(
     private readonly gateway: McpGatewayService,
     private readonly server: McpServerService,
   ) {}
 
-  @Public()
-  @Get('inventory')
   inventory(): McpInventory {
     return this.gateway.inventory();
   }
 
-  @Public()
-  @Post('invoke')
-  invoke(
-    @Body() body: McpToolInvocationRequest,
-  ): Promise<McpToolInvocationResponse> {
+  invoke(body: McpToolInvocationRequest): Promise<McpToolInvocationResponse> {
     return this.gateway.invokeTool(body);
   }
 
-  @Public()
-  @Get('resource')
-  resource(
-    @Query('serverId') serverId: string,
-    @Query('uri') uri: string,
-  ): Promise<McpToolInvocationResponse> {
+  resource(serverId: string, uri: string): Promise<McpToolInvocationResponse> {
     if (!serverId || !uri) {
       throw new BadRequestException(
         'Both "serverId" and "uri" query parameters are required.',
@@ -62,9 +37,7 @@ export class McpController {
       .then((content) => ({ content }));
   }
 
-  @Public()
-  @Post('chat')
-  chat(@Body() body: McpChatRequest): Promise<McpChatResponse> {
+  chat(body: McpChatRequest): Promise<McpChatResponse> {
     return this.gateway.chat(body);
   }
 
@@ -74,16 +47,11 @@ export class McpController {
    * protocol directly. The Angular preview uses the JSON endpoints above
    * instead so the browser doesn't need to bundle the SDK.
    */
-  @Public()
-  @All('transport')
   async transport(
-    @Req() req: FastifyRequest,
-    @Res() reply: FastifyReply,
+    req: IncomingMessage,
+    res: ServerResponse,
+    body: unknown,
   ): Promise<void> {
-    await this.server.handleTransportRequest(
-      req.raw,
-      reply.raw,
-      (req as FastifyRequest & { body: unknown }).body,
-    );
+    await this.server.handleTransportRequest(req, res, body);
   }
 }

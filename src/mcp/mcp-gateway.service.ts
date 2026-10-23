@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Logger } from '../common/logger';
 
 import {
   McpChatMessage,
@@ -22,7 +22,6 @@ import { McpServerService } from './mcp-server.service';
  * chat-preview heuristic that turns a user message into a tool call when
  * it can.
  */
-@Injectable()
 export class McpGatewayService {
   private readonly logger = new Logger(McpGatewayService.name);
 

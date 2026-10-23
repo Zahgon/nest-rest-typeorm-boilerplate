@@ -1,14 +1,14 @@
 <h1 align="center">API Starter</h1>
 
 <p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo_text.svg" width="320" alt="Nest Logo" /></a>
+  <a href="https://expressjs.com/" target="blank"><img src="https://img.shields.io/badge/Express-4.x-000000?style=for-the-badge&logo=express&logoColor=white" alt="Express Logo" /></a>
 </p>
 
-<p align="center">A progressive <a href="http://nodejs.org" target="blank">Node.js</a> framework for building efficient and scalable server-side applications, paired with TypeORM and a built-in Model Context Protocol (MCP) module for AI workflows.</p>
+<p align="center">A fast, unopinionated, minimalist web framework for <a href="http://nodejs.org" target="blank">Node.js</a>, paired with TypeORM and a built-in Model Context Protocol (MCP) module for AI workflows.</p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/~nestjscore"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-  <a href="https://www.npmjs.com/~nestjscore"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
+  <a href="https://www.npmjs.com/package/express"><img src="https://img.shields.io/npm/v/express.svg" alt="NPM Version" /></a>
+  <a href="https://www.npmjs.com/package/express"><img src="https://img.shields.io/npm/l/express.svg" alt="Package License" /></a>
   <a href="https://github.com/msanvarov/nest-rest-typeorm-boilerplate/actions"><img src="https://github.com/msanvarov/nest-rest-typeorm-boilerplate/actions/workflows/lint-and-test-merge.yml/badge.svg" alt="Github Actions" /></a>
 </p>
 
@@ -34,17 +34,17 @@
 
 This boilerplate is made to quickly prototype backend applications. It comes with authentication, authorization, logging, CRUD features, MySQL/MariaDB persistence via TypeORM, and a built-in Model Context Protocol server + client out of the box.
 
-This revision is a flat, single-project Nest CLI app. The previous Nx + Angular workspace has been collapsed — `apps/`, `libs/`, and every `@nx/*` package are gone.
+This revision is a flat, single-project Express app. The previous Nx + Angular workspace has been collapsed — `apps/`, `libs/`, and every `@nx/*` package are gone.
 
 ## Stack
 
 | Layer    | Tech                                                                            |
 | -------- | ------------------------------------------------------------------------------- |
 | Runtime  | Node.js 20+                                                                     |
-| API      | NestJS 11 (Fastify adapter), TypeORM 0.3, Passport JWT, CASL, Swagger           |
+| API      | Express 4, TypeORM 0.3, Passport JWT, CASL, Swagger                             |
 | AI / MCP | `@modelcontextprotocol/sdk` 1.x (server + client over Streamable HTTP)          |
 | Database | MySQL / MariaDB (TypeORM supports Postgres, SQLite, MSSQL, MongoDB)             |
-| Tooling  | TypeScript 5.6, ESLint 9, Prettier 3, Jest 29, Nest CLI                         |
+| Tooling  | TypeScript 5.6, ESLint 9, Prettier 3, Jest 29, tsc                              |
 
 ## Prerequisites
 
@@ -120,11 +120,11 @@ Set `MCP_CLIENT_REMOTES` to a comma-separated list of Streamable HTTP URLs. On s
 
 ## Web Framework
 
-The API uses [Fastify](https://github.com/fastify/fastify) via `@nestjs/platform-fastify`. An Express variant lives on a [separate branch](https://github.com/msanvarov/nest-rest-typeorm-boilerplate/tree/express).
+The API uses [Express](https://github.com/expressjs/express). Security headers come from `helmet`, request throttling from `express-rate-limit`, and payload validation from `class-validator`.
 
 ## HTTP/2
 
-Fastify supports HTTP/2 over HTTPS (h2) or plaintext (h2c). A working example with a self-signed certificate is on the [feat/http2 branch](https://github.com/msanvarov/nest-rest-typeorm-boilerplate/tree/feat/http2).
+Node's `http2` module serves HTTP/2 over HTTPS (h2) or plaintext (h2c) in front of the Express request handler. Generate a self-signed certificate to try it locally.
 
 ```bash
 openssl req -x509 -newkey rsa:4096 -keyout api-key.pem -out api-cert.pem -days 365 -nodes
@@ -170,7 +170,7 @@ Connection config lives in `src/app.module.ts`.
 
 ## Logs
 
-Winston is wired up via `nest-winston`. In development the API logs to the console with timestamps; in production it adds a JSON error file at `logs/error.log` and a daily-rotated archive under `logs/application-YYYY-MM-DD.log`.
+Winston is wired up directly. In development the API logs to the console with timestamps; in production it adds a JSON error file at `logs/error.log` and a daily-rotated archive under `logs/application-YYYY-MM-DD.log`.
 
 ## Contribution
 
@@ -178,6 +178,6 @@ PRs are appreciated.
 
 ## License
 
-Nest is [MIT licensed](LICENSE).
+This project is [MIT licensed](LICENSE).
 
 [Author](https://sal-anvarov.com/)

@@ -1,26 +1,26 @@
-import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CaslFactory } from '../casl/casl.factory';
-import { PoliciesGuard } from '../casl/policies.guard';
 import { UserRoles } from './user-role.entity';
 import { User } from './user.entity';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 
-@Module({
-  imports: [TypeOrmModule.forFeature([User, UserRoles])],
-  providers: [
-    UsersService,
-    {
-      provide: APP_GUARD,
-      useClass: JwtAuthGuard,
-    },
-    PoliciesGuard,
-    CaslFactory,
-  ],
-  controllers: [UsersController],
-})
-export class UsersModule {}
+/**
+ * Owns the user records and the ability factory used to authorise operations
+ * on them.
+ */
+export class UsersModule {
+  readonly service: UsersService;
+  readonly controller: UsersController;
+  readonly caslFactory: CaslFactory;
+
+  constructor(dataSource: DataSource, caslFactory: CaslFactory) {
+    this.service = new UsersService(
+      dataSource.getRepository(User),
+      dataSource.getRepository(UserRoles),
+    );
+    this.controller = new UsersController(this.service);
+    this.caslFactory = caslFactory;
+  }
+}

@@ -1,11 +1,9 @@
-import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { plainToClass } from 'class-transformer';
+import { Repository } from 'typeorm';
 
 import { UserRolesEnum } from '../shared/api-types';
 
+import { ConfigService } from '../common/config.service';
 import { UserRoles } from '../users/user-role.entity';
 import { User } from '../users/user.entity';
 import { UsersService } from '../users/users.service';
@@ -39,25 +37,18 @@ describe('AuthService', () => {
     save: jest.fn().mockResolvedValue([userRole]),
   };
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        AuthService,
-        JwtService,
-        UsersService,
-        ConfigService,
-        {
-          provide: getRepositoryToken(User),
-          useValue: mockedUserRepository,
-        },
-        {
-          provide: getRepositoryToken(UserRoles),
-          useValue: mockedUserRolesRepository,
-        },
-      ],
-    }).compile();
+  beforeEach(() => {
+    const config = new ConfigService({
+      WEBTOKEN_ENCRYPTION_KEY: 'test-encryption-key',
+      WEBTOKEN_EXPIRATION_TIME: '1800',
+    });
 
-    service = module.get<AuthService>(AuthService);
+    const usersService = new UsersService(
+      mockedUserRepository as unknown as Repository<User>,
+      mockedUserRolesRepository as unknown as Repository<UserRoles>,
+    );
+
+    service = new AuthService(config, usersService);
   });
 
   afterEach(() => jest.clearAllMocks());
